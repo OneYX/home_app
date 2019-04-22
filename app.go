@@ -21,7 +21,7 @@ type App struct {
 
 func (a *App) Initialize(user, password, dbName string) {
 	connectionString :=
-		fmt.Sprintf("%s.db?user=%s&pass=%s", dbName, user, password)
+		fmt.Sprintf("%s.db?User=%s&pass=%s", dbName, user, password)
 	println(connectionString)
 	var err error
 	a.DB, err = sql.Open("sqlite3", connectionString)
@@ -57,15 +57,13 @@ func (a *App) Run(addr string) {
 }
 
 func (a *App) initializeRoutes() {
-	a.Router.HandleFunc("/authenticate", CreateTokenEndpoint).Methods("POST")
-	a.Router.HandleFunc("/protected", ProtectedEndpoint).Methods("GET")
 	a.Router.HandleFunc("/test", ValidateMiddleware(TestEndpoint)).Methods("GET")
 	a.Router.HandleFunc("/login", a.login).Methods("POST")
 	a.Router.HandleFunc("/favorite", a.getFavorite).Methods("GET")
 }
 
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
-	var u user
+	var u User
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&u); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -85,8 +83,9 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":       u.Id,
 		"username": u.Username,
-		"password": u.Password,
+		"created":  u.Created,
 	})
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
@@ -96,7 +95,7 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, u)
 }
 
-func (a *App) getFavorite(w http.ResponseWriter, r *http.Request)  {
+func (a *App) getFavorite(w http.ResponseWriter, r *http.Request) {
 
 }
 

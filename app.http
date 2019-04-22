@@ -14,12 +14,8 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/protected?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzd29yZCI6IjEyMzQ1NiIsInVzZXJuYW1lIjoi5piT5bmz5LicIn0.MsDgzMMasVPi3RG-beWk5RsfeMyytJzLkfc_OYaFJ7Q
-Accept: application/json
-
-###
 GET http://localhost:8080/test
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzd29yZCI6IjEyMzQ1NiIsInVzZXJuYW1lIjoi5piT5bmz5LicIn0.MsDgzMMasVPi3RG-beWk5RsfeMyytJzLkfc_OYaFJ7Q
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkIjoiMjAxOS0wNC0yMlQwOTo1NjozOVoiLCJpZCI6MSwidXNlcm5hbWUiOiLmmJPlubPkuJwifQ.8-yH1iktqfxQ0KzHV5aFtRy03FblLXgc8Ug_9yV6waY
 
 ###
