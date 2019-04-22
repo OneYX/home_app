@@ -1,0 +1,25 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+  "username": "易平东",
+  "password": "123456"
+}
+
+###
+GET http://localhost:8080/protected?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzd29yZCI6IjEyMzQ1NiIsInVzZXJuYW1lIjoi5piT5bmz5LicIn0.MsDgzMMasVPi3RG-beWk5RsfeMyytJzLkfc_OYaFJ7Q
+Accept: application/json
+
+###
+GET http://localhost:8080/test
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzd29yZCI6IjEyMzQ1NiIsInVzZXJuYW1lIjoi5piT5bmz5LicIn0.MsDgzMMasVPi3RG-beWk5RsfeMyytJzLkfc_OYaFJ7Q
+
+###
