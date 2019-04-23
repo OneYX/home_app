@@ -27,7 +27,9 @@ func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 					return
 				}
 				if token.Valid {
-					context.Set(req, "decoded", token.Claims)
+					var user User
+					utils.Decode(token.Claims.(jwt.MapClaims), &user)
+					context.Set(req, "user", user)
 					next(w, req)
 				} else {
 					respondWithError(w, http.StatusUnauthorized, "Invalid authorization token")
@@ -37,11 +39,4 @@ func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			respondWithError(w, http.StatusForbidden, "An authorization header is required")
 		}
 	})
-}
-
-func TestEndpoint(w http.ResponseWriter, req *http.Request) {
-	decoded := context.Get(req, "decoded")
-	var user User
-	utils.Decode(decoded.(jwt.MapClaims), &user)
-	respondWithJSON(w, http.StatusOK, user)
 }

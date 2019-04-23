@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/context"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -22,7 +25,6 @@ type App struct {
 func (a *App) Initialize(user, password, dbName string) {
 	connectionString :=
 		fmt.Sprintf("%s.db?User=%s&pass=%s", dbName, user, password)
-	println(connectionString)
 	var err error
 	a.DB, err = sql.Open("sqlite3", connectionString)
 	if err != nil {
@@ -37,6 +39,7 @@ func (a *App) Initialize(user, password, dbName string) {
 );
 CREATE TABLE IF NOT EXISTS favorite (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	uid INTEGER NOT NULL,
 	title VARCHAR (64) NOT NULL,
 	url VARCHAR (255) NOT NULL,
 	img TEXT NOT NULL,
@@ -57,9 +60,30 @@ func (a *App) Run(addr string) {
 }
 
 func (a *App) initializeRoutes() {
-	a.Router.HandleFunc("/test", ValidateMiddleware(TestEndpoint)).Methods("GET")
-	a.Router.HandleFunc("/login", a.login).Methods("POST")
-	a.Router.HandleFunc("/favorite", a.getFavorite).Methods("GET")
+	a.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
+	router := a.Router.PathPrefix("/api").Subrouter()
+	router.HandleFunc("/login", a.login).Methods("POST")
+	router.HandleFunc("/favorite", ValidateMiddleware(a.getFavorite)).Methods("GET")
+	router.HandleFunc("/favorite", ValidateMiddleware(a.addFavorite)).Methods("POST")
+	router.HandleFunc("/favorite/{id:[0-9]+}", ValidateMiddleware(a.deleteFavorite)).Methods("DELETE")
+
+	err := router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		pathTemplate, err := route.GetPathTemplate()
+		if err != nil {
+			return err
+		}
+		methods, err := route.GetMethods()
+		if err != nil {
+			return err
+		}
+		s := fmt.Sprintf("%s, methods=[%s]", pathTemplate, strings.Join(methods, ","))
+		fmt.Println(s)
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +120,58 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getFavorite(w http.ResponseWriter, r *http.Request) {
+	count, _ := strconv.Atoi(r.FormValue("count"))
+	start, _ := strconv.Atoi(r.FormValue("start"))
 
+	if count > 10 || count < 1 {
+		count = 10
+	}
+	if start < 0 {
+		start = 0
+	}
+
+	user := context.Get(r, "user").(User)
+	favorites, err := user.getFavorites(a.DB, start, count)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, favorites)
+}
+
+func (a *App) addFavorite(w http.ResponseWriter, r *http.Request) {
+	user := context.Get(r, "user").(User)
+	var f Favorite
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&f); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	if err := user.addFavorite(a.DB, &f); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, f)
+}
+
+func (a *App) deleteFavorite(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid Favorite ID")
+		return
+	}
+
+	f := Favorite{Id: id}
+	user := context.Get(r, "user").(User)
+	if err := user.deleteFavorite(a.DB, f); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {

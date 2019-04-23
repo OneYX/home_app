@@ -5,16 +5,32 @@
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
 
-POST http://localhost:8080/login
+POST http://localhost:8080/api/login
 Content-Type: application/json
 
 {
-  "username": "易平东",
+  "username": "test",
   "password": "123456"
 }
 
 ###
-GET http://localhost:8080/test
+GET http://localhost:8080/api/favorite
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkIjoiMjAxOS0wNC0yMlQwOTo1NjozOVoiLCJpZCI6MSwidXNlcm5hbWUiOiLmmJPlubPkuJwifQ.8-yH1iktqfxQ0KzHV5aFtRy03FblLXgc8Ug_9yV6waY
+
+###
+POST http://localhost:8080/api/favorite
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkIjoiMjAxOS0wNC0yMlQwOTo1NjozOVoiLCJpZCI6MSwidXNlcm5hbWUiOiLmmJPlubPkuJwifQ.8-yH1iktqfxQ0KzHV5aFtRy03FblLXgc8Ug_9yV6waY
+
+{
+  "title": "百度",
+  "url": "https://www.baidu.com",
+  "img": "https://www.baidu.com/favicon.ico"
+}
+
+###
+DELETE http://localhost:8080/api/favorite/3
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkIjoiMjAxOS0wNC0yMlQwOTo1NjozOVoiLCJpZCI6MSwidXNlcm5hbWUiOiLmmJPlubPkuJwifQ.8-yH1iktqfxQ0KzHV5aFtRy03FblLXgc8Ug_9yV6waY
 
