@@ -17,6 +17,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+//go:generate go-bindata-assetfs static/...
 type App struct {
 	Router *mux.Router
 	DB     *sql.DB
@@ -60,12 +61,12 @@ func (a *App) Run(addr string) {
 }
 
 func (a *App) initializeRoutes() {
-	a.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
 	router := a.Router.PathPrefix("/api").Subrouter()
 	router.HandleFunc("/login", a.login).Methods("POST")
 	router.HandleFunc("/favorite", ValidateMiddleware(a.getFavorite)).Methods("GET")
 	router.HandleFunc("/favorite", ValidateMiddleware(a.addFavorite)).Methods("POST")
 	router.HandleFunc("/favorite/{id:[0-9]+}", ValidateMiddleware(a.deleteFavorite)).Methods("DELETE")
+	a.Router.PathPrefix("/").Handler(http.FileServer(assetFS()))
 
 	err := router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
